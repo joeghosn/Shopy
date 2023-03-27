@@ -19,6 +19,8 @@ const ifValidCardElement = (
 ): card is StripeCardElement => card !== null;
 
 const PaymentForm = () => {
+
+
   const stripe = useStripe();
   const elements = useElements();
   const amount = useSelector(selectCartTotal);
@@ -34,13 +36,23 @@ const PaymentForm = () => {
 
     setIsProcessingPayment(true);
 
-    const response = await fetch('/.netlify/functions/create-payment-intent', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ amount: amount * 100 }),
-    }).then((res) => res.json());
+    console.log("Payment Under Process!");
+    let response=null;
+
+    try{
+       response = await fetch("/.netlify/functions/create-payment-intent", {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: amount * 100 }),
+      }).then((res) => res.json());
+    }catch(err){
+      console.log("Error finding serverless function", err);
+    }
+
+    
+
 
     const {
       paymentIntent: { client_secret },
@@ -62,6 +74,7 @@ const PaymentForm = () => {
     setIsProcessingPayment(false);
 
     if (paymentResult.error) {
+      console.log("Error, transaction not completed");
       alert(paymentResult.error);
     } else {
       if (paymentResult.paymentIntent.status === 'succeeded') {
